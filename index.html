@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Architecture Reference</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Prism.js (Syntax Highlighting) - Theme: Visual Studio (Light) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-vs.min.css" rel="stylesheet" />
+    
+    <!-- Fonts: Inter (UI) + JetBrains Mono (Code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+            color: #334155; /* Slate 700 */
+        }
+
+        /* Scrollbar Customization */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* --- Modern Snippet Style (Mac-like Window) --- */
+        pre[class*="language-"] {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 0.75rem; /* Rounded corners */
+            margin: 1.5rem 0;
+            padding-top: 3.5rem !important; /* Space for the "header" */
+            padding-bottom: 1.5rem !important;
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+            position: relative;
+            overflow: hidden; /* Ensure header stays inside rounded corners */
+        }
+
+        /* The "Window Header" Background */
+        pre[class*="language-"]::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2.5rem;
+            background-color: #f8fafc; /* Header Color */
+            border-bottom: 1px solid #e2e8f0;
+            z-index: 10;
+        }
+
+        /* The "Traffic Lights" (Dots) */
+        pre[class*="language-"]::after {
+            content: "Kotlin"; /* Language Label */
+            position: absolute;
+            top: 0.65rem;
+            right: 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            z-index: 11;
+        }
+
+        /* Adding the dots using a background image gradient for the dots on the ::before */
+        pre[class*="language-"]::before {
+            /* This creates the 3 dots: Red, Yellow, Green */
+            background-image: radial-gradient(circle, #ff5f56 5px, transparent 6px),
+                              radial-gradient(circle, #ffbd2e 5px, transparent 6px),
+                              radial-gradient(circle, #27c93f 5px, transparent 6px);
+            background-size: 100% 100%;
+            background-position: 1rem center, 2.2rem center, 3.4rem center; /* Dot positions */
+            background-repeat: no-repeat;
+        }
+
+        code[class*="language-"], pre[class*="language-"] {
+            color: #475569 !important; /* Slate 600 */
+            text-shadow: none !important;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+            font-size: 0.875rem; /* 14px */
+            line-height: 1.6;
+        }
+        
+        /* Prism Keyword Colors Adjustment for Harmony */
+        .token.comment,
+        .token.prolog,
+        .token.doctype,
+        .token.cdata {
+            color: #94a3b8; /* Slate 400 */
+            font-style: italic;
+        }
+        
+        .token.function {
+            color: #4f46e5; /* Indigo 600 (Primary) */
+        }
+        
+        .token.keyword {
+            color: #be185d; /* Pink 700 */
+        }
+        
+        .token.string {
+            color: #059669; /* Emerald 600 */
+        }
+        
+        .token.class-name {
+            color: #0891b2; /* Cyan 600 */
+        }
+
+        /* Mermaid Diagram Container */
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+    
+    <!-- Mermaid Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5', /* Indigo 600 */
+                        secondary: '#64748b', /* Slate 500 */
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-72 bg-white border-r border-slate-200 h-full overflow-y-auto z-10">
+        <div class="p-6 sticky top-0 bg-white z-20 border-b border-slate-100">
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">
+                <span class="text-primary">Android</span> Arch
+            </h1>
+            <p class="text-xs text-slate-500 mt-1 font-medium">Clean + Modular + Nav3</p>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-1" id="nav-menu">
+            <!-- Links will be highlighted by JS -->
+            <a href="#overview" class="nav-link block px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors">Overview</a>
+            <div class="pt-4 pb-2 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Modules</div>
+            <a href="#build-logic" class="nav-link block px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors">build-logic</a>
+            <a href="#core-common" class="nav-link block px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors">:core:common</a>
+            <a href="#domain" class="nav-link block px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors">:domain</a>
+            <a href="#data" class="nav-link block px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors">:data</a>
+            <a href="#presentation" class="nav-link block px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors">:presentation</a>
+            <a href="#app" class="nav-link block px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors">:app</a>
+            <a href="#testing" class="nav-link block px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-50 hover:text-primary transition-colors">:core:testing</a>
+        </nav>
+
+        <div class="p-4 border-t border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">DS</div>
+                <div>
+                    <p class="text-sm font-medium text-slate-900">Docs System</p>
+                    <p class="text-xs text-slate-500">v2.4.2</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 h-full overflow-y-auto scroll-smooth relative" id="main-content">
+        <div class="max-w-4xl mx-auto px-6 py-12 md:px-12">
+            
+            <!-- 1. Overview (Hero) -->
+            <section id="overview" class="mb-16 scroll-mt-10">
+                <div class="mb-8">
+                    <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 mb-4">Architecture Reference</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mb-4">Android Clean Architecture & Navigation 3</h2>
+                    <p class="text-lg text-slate-600 leading-relaxed">
+                        A structural overview of our modularized project, ensuring separation of concerns, scalability, and testability.
+                    </p>
+                </div>
+
+                <div class="mermaid shadow-sm">
+                    graph TD
+                    
+                    subgraph BL [build-logic]
+                        direction TB
+                        app[:app]
+                        pres[:presentation]
+                        dom[:domain]
+                        data[:data]
+                        common[:core:common]
+                        test[:core:testing]
+                    end
+                    style BL fill:#fff,stroke:#94a3b8,stroke-width:2px,stroke-dasharray: 5 5
+
+                    app --> pres
+                    app --> dom
+                    app --> data
+                    app --> test
+
+                    pres --> dom
+                    pres --> common
+                    pres --> test
+
+                    data --> dom
+                    data --> common
+                    data --> test
+
+                    %% Domain Isolation
+                    linkStyle default stroke:#64748b,stroke-width:2px
+
+                    %% Styling Nodes
+                    classDef ui fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px;
+                    classDef domain fill:#f3e8ff,stroke:#7e22ce,color:#581c87,stroke-width:2px;
+                    classDef data fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px;
+                    classDef test fill:#ffedd5,stroke:#c2410c,color:#7c2d12,stroke-width:2px;
+                    classDef appNode fill:#f1f5f9,stroke:#334155,color:#0f172a,stroke-width:2px;
+                    classDef commonNode fill:#f1f5f9,stroke:#475569,color:#0f172a,stroke-width:2px;
+
+                    class pres ui;
+                    class dom domain;
+                    class data data;
+                    class test test;
+                    class app appNode;
+                    class common commonNode;
+                </div>
+            </section>
+
+            <!-- Module Card Template -->
+            <!-- 2. build-logic -->
+            <section id="build-logic" class="mb-12 scroll-mt-20">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-between">
+                        <h3 class="text-xl font-semibold text-slate-800 font-mono">build-logic</h3>
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">Gradle KTS</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Centrally manages build configurations and project dependencies via a <strong>Version Catalog</strong> and <strong>Convention Plugins</strong>. This ensures consistency across all modules and simplifies version maintenance at scale.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+                                <h4 class="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    What Goes In
+                                </h4>
+                                <ul class="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                    <li>Custom Plugins (Convention)</li>
+                                    <li>Java/Kotlin JVM Configuration</li>
+                                    <li>Compose & Hilt Configuration</li>
+                                </ul>
+                            </div>
+                            <div class="bg-rose-50 rounded-lg p-4 border border-rose-100">
+                                <h4 class="text-sm font-bold text-rose-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    What Doesn't Go In
+                                </h4>
+                                <ul class="text-sm text-rose-900 space-y-1 list-disc list-inside">
+                                    <li>Application Source Code</li>
+                                    <li>Business Logic</li>
+                                    <li>Feature Implementation</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Usage Example</h4>
+<pre><code class="language-kotlin">// In :presentation/build.gradle.kts
+plugins {
+    id("yourproject.android.compose") // Configures UI
+    id("yourproject.android.hilt")    // Configures DI
+}</code></pre>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100">
+                            <a href="https://developer.android.com/build/migrate-to-catalogs#convention-plugins" target="_blank" class="inline-flex items-center text-sm font-semibold text-primary hover:text-indigo-800 transition-colors group">
+                                <span>Read Official Docs: Gradle Convention Plugins</span>
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. :core:common -->
+            <section id="core-common" class="mb-12 scroll-mt-20">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-between">
+                        <h3 class="text-xl font-semibold text-slate-800 font-mono">:core:common</h3>
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">Utilities</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Provides cross-cutting utilities and base structures shared across the project, such as response wrappers and thread abstractions. It serves as a technical foundation without domain-specific logic.
+                        </p>
+                        <!-- Do/Dont Grid -->
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+                                <h4 class="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    What Goes In
+                                </h4>
+                                <ul class="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                    <li><code>Result&lt;T&gt;</code> Class</li>
+                                    <li>Generic Extensions</li>
+                                    <li>Loggers and Formatters</li>
+                                </ul>
+                            </div>
+                            <div class="bg-rose-50 rounded-lg p-4 border border-rose-100">
+                                <h4 class="text-sm font-bold text-rose-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    What Doesn't Go In
+                                </h4>
+                                <ul class="text-sm text-rose-900 space-y-1 list-disc list-inside">
+                                    <li>UseCases</li>
+                                    <li>Domain Models</li>
+                                    <li>Screens (UI)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Example: Result Wrapper</h4>
+<pre><code class="language-kotlin">sealed interface Result&lt;out T&gt; {
+    data class Success&lt;T&gt;(val data: T) : Result&lt;T&gt;
+    data class Error(val exception: Throwable) : Result&lt;Nothing&gt;
+    data object Loading : Result&lt;Nothing&gt;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. :domain -->
+            <section id="domain" class="mb-12 scroll-mt-20">
+                <div class="bg-white rounded-xl shadow-sm border border-purple-200 overflow-hidden ring-1 ring-purple-100">
+                    <div class="border-b border-purple-100 bg-purple-50/50 px-6 py-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-purple-600"></div>
+                            <h3 class="text-xl font-semibold text-slate-800 font-mono">:domain</h3>
+                        </div>
+                        <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">Pure Kotlin</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            The intellectual core of the software. Reflects business rules and data contracts. Agnostic to frameworks (Android, Room, Retrofit) to ensure purity and maximum testability.
+                        </p>
+                         <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+                                <h4 class="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    What Goes In
+                                </h4>
+                                <ul class="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                    <li>Pure Models</li>
+                                    <li>Repository Interfaces</li>
+                                    <li>UseCases / Interactors</li>
+                                </ul>
+                            </div>
+                            <div class="bg-rose-50 rounded-lg p-4 border border-rose-100">
+                                <h4 class="text-sm font-bold text-rose-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    What Doesn't Go In
+                                </h4>
+                                <ul class="text-sm text-rose-900 space-y-1 list-disc list-inside">
+                                    <li><code>android.*</code> Imports</li>
+                                    <li>JSON/Room Annotations</li>
+                                    <li>DTOs</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+<pre><code class="language-kotlin">// Interface (Contract)
+interface UserRepository {
+    suspend fun getUserProfile(id: String): Result&lt;User&gt;
+}
+// UseCase (Rule)
+class GetUserUseCase(private val repository: UserRepository) {
+    suspend operator fun invoke(id: String): Result&lt;User&gt; = repository.getUserProfile(id)
+}</code></pre>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-slate-100">
+                            <a href="https://developer.android.com/topic/architecture/domain-layer" target="_blank" class="inline-flex items-center text-sm font-semibold text-primary hover:text-indigo-800 transition-colors group">
+                                <span>Read Official Docs: Domain Layer</span>
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. :data -->
+            <section id="data" class="mb-12 scroll-mt-20">
+                <div class="bg-white rounded-xl shadow-sm border border-blue-200 overflow-hidden ring-1 ring-blue-100">
+                     <div class="border-b border-blue-100 bg-blue-50/50 px-6 py-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                            <h3 class="text-xl font-semibold text-slate-800 font-mono">:data</h3>
+                        </div>
+                        <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">Repository Pattern</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Single Source of Truth (SSOT). Manages APIs, local databases, and caching. Shields the domain from implementation details (like JSON or SQL).
+                        </p>
+                         <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+                                <h4 class="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    What Goes In
+                                </h4>
+                                <ul class="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                    <li>Repository Implementations</li>
+                                    <li>DataSources (Retrofit/Room)</li>
+                                    <li>Mappers (DTO -> Domain)</li>
+                                </ul>
+                            </div>
+                            <div class="bg-rose-50 rounded-lg p-4 border border-rose-100">
+                                <h4 class="text-sm font-bold text-rose-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    What Doesn't Go In
+                                </h4>
+                                <ul class="text-sm text-rose-900 space-y-1 list-disc list-inside">
+                                    <li>Complex Business Logic</li>
+                                    <li>Exposing DTOs to other layers</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+<pre><code class="language-kotlin">class UserRepositoryImpl(private val api: UserApi) : UserRepository {
+    override suspend fun getUserProfile(id: String): Result&lt;User&gt; {
+        val dto = api.fetchUser(id)
+        return Result.Success(dto.toDomain()) // Mapper cleans the data
+    }
+}</code></pre>
+                        </div>
+                        
+                         <div class="pt-4 border-t border-slate-100">
+                            <a href="https://developer.android.com/topic/architecture/data-layer" target="_blank" class="inline-flex items-center text-sm font-semibold text-primary hover:text-indigo-800 transition-colors group">
+                                <span>Read Official Docs: Data Layer</span>
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             <!-- 6. :presentation -->
+            <section id="presentation" class="mb-12 scroll-mt-20">
+                <div class="bg-white rounded-xl shadow-sm border border-green-200 overflow-hidden ring-1 ring-green-100">
+                    <div class="border-b border-green-100 bg-green-50/50 px-6 py-4 flex items-center justify-between">
+                         <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-green-600"></div>
+                            <h3 class="text-xl font-semibold text-slate-800 font-mono">:presentation</h3>
+                        </div>
+                        <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">MVVM + Compose</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Renders the UI and manages state via <strong>UDF (Unidirectional Data Flow)</strong>. Organized as a "Modular Monolith" to facilitate sharing UI components and the Design System.
+                        </p>
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+                                <h4 class="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    What Goes In
+                                </h4>
+                                <ul class="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                    <li>Composables (Views)</li>
+                                    <li>ViewModels & UiState</li>
+                                    <li>Design System</li>
+                                </ul>
+                            </div>
+                            <div class="bg-rose-50 rounded-lg p-4 border border-rose-100">
+                                <h4 class="text-sm font-bold text-rose-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    What Doesn't Go In
+                                </h4>
+                                <ul class="text-sm text-rose-900 space-y-1 list-disc list-inside">
+                                    <li>Routing Logic</li>
+                                    <li>Business Rules</li>
+                                    <li>Direct API Calls</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+<pre><code class="language-kotlin">@HiltViewModel
+class ProfileViewModel @Inject constructor(useCase: GetUserUseCase) : ViewModel() {
+    // MVVM: ViewModel transforms Domain data into UiState for the View
+    fun load() { /* useCase() -> _uiState.value = Success */ }
+}</code></pre>
+                        </div>
+
+                         <div class="pt-4 border-t border-slate-100">
+                            <a href="https://developer.android.com/topic/architecture/ui-layer" target="_blank" class="inline-flex items-center text-sm font-semibold text-primary hover:text-indigo-800 transition-colors group">
+                                <span>Read Official Docs: UI Layer</span>
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             <!-- 7. :app -->
+             <section id="app" class="mb-12 scroll-mt-20">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-between">
+                         <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-slate-800"></div>
+                            <h3 class="text-xl font-semibold text-slate-800 font-mono">:app</h3>
+                        </div>
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">Entry Point</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                             The "Glue Code". Application entry point, Dependency Injection root (Hilt), and Navigation orchestrator (Navigation 3). Knows about all modules.
+                        </p>
+                         <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+                                <h4 class="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    What Goes In
+                                </h4>
+                                <ul class="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                    <li><code>MainActivity</code></li>
+                                    <li>DI Setup and NavHost</li>
+                                    <li>Mapping <code>Keys</code> -> <code>Screens</code></li>
+                                </ul>
+                            </div>
+                            <div class="bg-rose-50 rounded-lg p-4 border border-rose-100">
+                                <h4 class="text-sm font-bold text-rose-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    What Doesn't Go In
+                                </h4>
+                                <ul class="text-sm text-rose-900 space-y-1 list-disc list-inside">
+                                    <li>Screen Implementation</li>
+                                    <li>Business Logic</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+<pre><code class="language-kotlin">@Composable
+fun AppNavigation(navState: List&lt;Any&gt;) {
+    NavDisplay(navState) { screen ->
+        when (screen) {
+            is ProfileKey -> { // Maps Key -> Screen
+                ProfileScreen(hiltViewModel&lt;ProfileViewModel&gt;().uiState)
+            }
+        }
+    }
+}</code></pre>
+                        </div>
+                        
+                         <div class="pt-4 border-t border-slate-100">
+                            <a href="https://developer.android.com/guide/navigation/principles" target="_blank" class="inline-flex items-center text-sm font-semibold text-primary hover:text-indigo-800 transition-colors group">
+                                <span>Read Official Docs: Navigation</span>
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             <!-- 8. :core:testing -->
+             <section id="testing" class="mb-24 scroll-mt-20">
+                <div class="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden ring-1 ring-orange-100">
+                    <div class="border-b border-orange-100 bg-orange-50/50 px-6 py-4 flex items-center justify-between">
+                         <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                            <h3 class="text-xl font-semibold text-slate-800 font-mono">:core:testing</h3>
+                        </div>
+                        <span class="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">Test Doubles</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Shared testing infrastructure. Avoids duplication of Fakes, Mocks, and Rules across modules.
+                        </p>
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+                                <h4 class="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    What Goes In
+                                </h4>
+                                <ul class="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                    <li>Fakes (<code>FakeRepository</code>)</li>
+                                    <li>JUnit Rules (Dispatcher)</li>
+                                    <li>Test Builders/Factories</li>
+                                </ul>
+                            </div>
+                            <div class="bg-rose-50 rounded-lg p-4 border border-rose-100">
+                                <h4 class="text-sm font-bold text-rose-800 flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    What Doesn't Go In
+                                </h4>
+                                <ul class="text-sm text-rose-900 space-y-1 list-disc list-inside">
+                                    <li>Test Cases (<code>@Test</code>)</li>
+                                    <li>Production Logic</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+<pre><code class="language-kotlin">// Reusable Rule for Coroutines
+class MainDispatcherRule(
+    val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
+) : TestWatcher() {
+    override fun starting(desc: Description) = Dispatchers.setMain(testDispatcher)
+    override fun finished(desc: Description) = Dispatchers.resetMain()
+}</code></pre>
+                        </div>
+                        
+                         <div class="pt-4 border-t border-slate-100">
+                            <a href="https://developer.android.com/training/testing/fundamentals" target="_blank" class="inline-flex items-center text-sm font-semibold text-primary hover:text-indigo-800 transition-colors group">
+                                <span>Read Official Docs: Testing</span>
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+        
+    </main>
+
+    <!-- SCRIPTS -->
+    
+    <!-- Prism Core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+    
+    <!-- Mermaid -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    
+    <script>
+        // Init Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                fontFamily: 'Inter',
+                fontSize: '14px',
+                primaryColor: '#f1f5f9',
+                primaryBorderColor: '#64748b',
+                lineColor: '#64748b',
+                secondaryColor: '#f8fafc',
+                tertiaryColor: '#fff'
+            }
+        });
+
+        // Navigation Logic (Scroll Spy)
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContent = document.getElementById('main-content');
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            function highlightNavigation() {
+                let scrollY = mainContent.scrollTop;
+                
+                // Offset a bit to trigger earlier
+                const triggerPoint = scrollY + 150; 
+
+                sections.forEach(current => {
+                    const sectionHeight = current.offsetHeight;
+                    const sectionTop = current.offsetTop;
+                    const sectionId = current.getAttribute('id');
+
+                    if (triggerPoint > sectionTop && triggerPoint <= sectionTop + sectionHeight) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('bg-indigo-50', 'text-primary', 'font-semibold');
+                            link.classList.add('text-slate-600');
+                            
+                            if (link.getAttribute('href').includes(sectionId)) {
+                                link.classList.add('bg-indigo-50', 'text-primary', 'font-semibold');
+                                link.classList.remove('text-slate-600');
+                                
+                                // Scroll sidebar to keep active link in view
+                                link.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }
+                        });
+                    }
+                });
+            }
+
+            mainContent.addEventListener('scroll', highlightNavigation);
+            highlightNavigation(); // Trigger once on load
+        });
+    </script>
+</body>
+</html>
